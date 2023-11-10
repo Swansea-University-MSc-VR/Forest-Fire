@@ -87,10 +87,6 @@ public class ForestFireCell : MonoBehaviour
     // so we can check to see if the tree has material has been set aleady and skip changing it again to save on performance
     public void SetTree()
     {
-        if (groundMeshRenderer.sharedMaterial == groundMaterialTree)
-            return;
-
-        // this code below wont run once the tree material has been set
         ResetCell();
         cellState = State.Tree;
         groundMeshRenderer.material = groundMaterialTree;
@@ -103,10 +99,6 @@ public class ForestFireCell : MonoBehaviour
     // so we can check to see if the grass has material has been set aleady and skip changing it again to save on performance
     public void SetGrass()
     {
-        if (groundMeshRenderer.sharedMaterial == groundMaterialGrass)
-            return;
-
-        // this code below wont run once the grass material has been set
         ResetCell();
         cellState = State.Grass;
         groundMeshRenderer.material = groundMaterialGrass;
@@ -117,10 +109,6 @@ public class ForestFireCell : MonoBehaviour
     // so we can check to see if the rock has material has been set aleady and never alter it again to save on performance
     public void SetRock()
     {
-        if (groundMeshRenderer.sharedMaterial == groundMaterialRock)
-            return;
-
-        // this code below wont run once the rock material has been set
         ResetCell();
         cellState = State.Rock;
         cellFuel = 0;

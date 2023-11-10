@@ -43,7 +43,15 @@ public class ForestFire3D : MonoBehaviour
         CreateGrid(gridSizeX, gridSizeY);
         RandomiseGrid();
         PauseGame(true);
+
+        // update the next cell state on grid according to the rules of the game
+        UpdateNextCellStates();
+
+        // update the visual state of each cell
         UpdateGridVisuals();
+
+        // make the next gen states the current states
+        ApplyCurrentCellStates();
     }
 
     // this function controls whether or not to pause the game
@@ -81,10 +89,7 @@ public class ForestFire3D : MonoBehaviour
         if (Keyboard.current.rKey.wasPressedThisFrame)
         {
             RandomiseGrid();
-        }
-
-        // update the visual state of each cell
-        UpdateGridVisuals();
+        }        
 
         // if the game is not running, return here to prevent the rest of the code in this Update function from running    
         if (gameRunning == false)
@@ -96,9 +101,16 @@ public class ForestFire3D : MonoBehaviour
         }
         else
         {
-            UpdateCells();
+            UpdateNextCellStates();
+
+            // update the visual state of each cell
+            UpdateGridVisuals();
+
+            // make the next gen states the current states
+            ApplyCurrentCellStates();
             _gameTimer = 0f;
         }
+
     }
 
     private void RandomiseGrid()
@@ -137,6 +149,7 @@ public class ForestFire3D : MonoBehaviour
             if (forestFireCells[xC, yC].cellState == ForestFireCell.State.Tree)
             {
                 forestFireCells[xC, yC].SetAlight();
+                Debug.Log("Cell " + xC + ", " + yC + " is on fire");
 
                 nlight = nlight - 1;     // decrease number of trees to light by 1
             }
@@ -146,9 +159,8 @@ public class ForestFire3D : MonoBehaviour
         forestFireCells[20, 20].SetGrass();
     }
 
-
-    // update the status of each cell on grid according to the rules of the game
-    private void UpdateCells()
+    // update the next cell state on grid according to the rules of the game
+    private void UpdateNextCellStates()
     {
         // iterate through each cell in the rows and columns
         for (int xCount = 0; xCount < gridSizeX; xCount++)
@@ -196,16 +208,7 @@ public class ForestFire3D : MonoBehaviour
                     forestFireCellsNextGenStates[xCount, yCount] = forestFireCells[xCount, yCount].cellState;
                 }
             }
-        }
-
-        // now the state of each cell has been calculated, apply the results by setting the current game array values to that of the next generation
-        for (int xCount = 0; xCount < gridSizeX; xCount++)
-        {
-            for (int yCount = 0; yCount < gridSizeY; yCount++)
-            {
-                forestFireCells[xCount, yCount].cellState = forestFireCellsNextGenStates[xCount, yCount];
-            }
-        }
+        }       
     }
 
     // count the alight cells surrounding a specified cell on the grid 
@@ -309,31 +312,78 @@ public class ForestFire3D : MonoBehaviour
     private void UpdateGridVisuals()
     {
         // iterate through each cell in the rows and columns
+        //for (int xCount = 0; xCount < gridSizeX; xCount++)
+        //{
+        //    // check current state of cell an update visual
+        //    for (int yCount = 0; yCount < gridSizeY; yCount++)
+        //    {
+        //        if (forestFireCells[xCount, yCount].cellState == ForestFireCell.State.Alight)
+        //        {
+        //            forestFireCells[xCount, yCount].SetAlight();
+        //        }
+        //        else if (forestFireCells[xCount, yCount].cellState == ForestFireCell.State.Rock)
+        //        {
+        //            forestFireCells[xCount, yCount].SetRock();
+        //        }
+        //        else if (forestFireCells[xCount, yCount].cellState != ForestFireCell.State.Rock && forestFireCells[xCount, yCount].cellFuel <= 0)// it's not a rock but it's fuel is zero, therefore it must be burnt out grass or tree
+        //        {
+        //            forestFireCells[xCount, yCount].SetBurnt();
+        //        }
+        //        else if (forestFireCells[xCount, yCount].cellState == ForestFireCell.State.Grass)
+        //        {
+        //            forestFireCells[xCount, yCount].SetGrass();
+        //        }
+        //        else if (forestFireCells[xCount, yCount].cellState == ForestFireCell.State.Tree)
+        //        {
+
+        //            forestFireCells[xCount, yCount].SetTree();
+        //        }
+        //    }
+        //}
+
+        // iterate through each cell in the rows and columns
         for (int xCount = 0; xCount < gridSizeX; xCount++)
         {
             // check current state of cell an update visual
             for (int yCount = 0; yCount < gridSizeY; yCount++)
             {
-                if (forestFireCells[xCount, yCount].cellState == ForestFireCell.State.Alight)
+                if (forestFireCellsNextGenStates[xCount, yCount] == ForestFireCell.State.Alight)
                 {
-                    forestFireCells[xCount, yCount].SetAlight();
+                    if (forestFireCells[xCount, yCount].cellState != ForestFireCell.State.Alight)
+                        forestFireCells[xCount, yCount].SetAlight();
                 }
-                else if (forestFireCells[xCount, yCount].cellState == ForestFireCell.State.Rock)
+                else if (forestFireCellsNextGenStates[xCount, yCount] == ForestFireCell.State.Rock)
                 {
-                    forestFireCells[xCount, yCount].SetRock();
+                    if (forestFireCells[xCount, yCount].cellState != ForestFireCell.State.Rock)
+                        forestFireCells[xCount, yCount].SetRock();
                 }
-                else if (forestFireCells[xCount, yCount].cellState != ForestFireCell.State.Rock && forestFireCells[xCount, yCount].cellFuel <= 0)// it's not a rock but it's fuel is zero, therefore it must be burnt out grass or tree
+                else if (forestFireCellsNextGenStates[xCount, yCount] != ForestFireCell.State.Rock && forestFireCells[xCount, yCount].cellFuel <= 0)// it's not a rock but it's fuel is zero, therefore it must be burnt out grass or tree
                 {
-                    forestFireCells[xCount, yCount].SetBurnt();
+                    if (forestFireCells[xCount, yCount].cellState != ForestFireCell.State.Burnt)
+                        forestFireCells[xCount, yCount].SetBurnt();
                 }
-                else if (forestFireCells[xCount, yCount].cellState == ForestFireCell.State.Grass)
+                else if (forestFireCellsNextGenStates[xCount, yCount] == ForestFireCell.State.Grass)
                 {
-                    forestFireCells[xCount, yCount].SetGrass();
+                    if (forestFireCells[xCount, yCount].cellState != ForestFireCell.State.Grass)
+                        forestFireCells[xCount, yCount].SetGrass();
                 }
-                else if (forestFireCells[xCount, yCount].cellState == ForestFireCell.State.Tree)
+                else if (forestFireCellsNextGenStates[xCount, yCount] == ForestFireCell.State.Tree)
                 {
-                    forestFireCells[xCount, yCount].SetTree();
+                    if (forestFireCells[xCount, yCount].cellState != ForestFireCell.State.Tree)
+                        forestFireCells[xCount, yCount].SetTree();
                 }
+            }
+        }
+    }
+
+    private void ApplyCurrentCellStates()
+    {
+        // now the state of each cell has been calculated, apply the results by setting the current game array values to that of the next generation
+        for (int xCount = 0; xCount < gridSizeX; xCount++)
+        {
+            for (int yCount = 0; yCount < gridSizeY; yCount++)
+            {
+                forestFireCells[xCount, yCount].cellState = forestFireCellsNextGenStates[xCount, yCount];
             }
         }
     }
